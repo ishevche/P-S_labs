@@ -352,8 +352,7 @@ display: none;
 </div>
 
 
-<p>/home/ivan/Documents/UCU/OOP/.github/workflows/lab_4.yaml—
-editor_options: markdown: wrap: 72 —</p>
+<p>editor_options: markdown: wrap: 72 —</p>
 <div id="probability-and-statistics" class="section level1">
 <h1>Probability and Statistics</h1>
 </div>
@@ -475,11 +474,10 @@ from your text document.</li>
 <pre class="r"><code>list.files(getwd())</code></pre>
 <pre><code>## [1] &quot;data&quot;                                      
 ## [2] &quot;data.zip&quot;                                  
-## [3] &quot;intro-R.Rmd&quot;                               
-## [4] &quot;Lab1_Naive_Bayes_Classifier_Templatee.html&quot;
-## [5] &quot;Lab1_Naive_Bayes_Classifier_Templatee.Rmd&quot; 
-## [6] &quot;Lab1.Rproj&quot;                                
-## [7] &quot;stop_words.txt&quot;</code></pre>
+## [3] &quot;Lab1_Naive_Bayes_Classifier_Templatee.html&quot;
+## [4] &quot;Lab1_Naive_Bayes_Classifier_Templatee.Rmd&quot; 
+## [5] &quot;Lab1.Rproj&quot;                                
+## [6] &quot;stop_words.txt&quot;</code></pre>
 <pre class="r"><code>list.files(&quot;data/0-authors&quot;)</code></pre>
 <pre><code>## [1] &quot;test.csv&quot;  &quot;train.csv&quot;</code></pre>
 <pre class="r"><code>test_path &lt;- &quot;data/0-authors/test.csv&quot;
@@ -512,53 +510,71 @@ positive examples as a histogram, word cloud etc. Be creative!</p>
 </div>
 <div id="classifier-implementation" class="section level2">
 <h2>Classifier implementation</h2>
-<pre class="r"><code>naiveBayes &lt;- setRefClass(&quot;naiveBayes&quot;,
+<pre class="r"><code>naiveBayes &lt;-
+  setRefClass(&quot;naiveBayes&quot;,
 
-                          # here it would be wise to have some vars to store intermediate result
-                          # frequency dict etc. Though pay attention to bag of wards!
-                          fields = list(data = &quot;data.frame&quot;),
-                          methods = list(
-                            # prepare your training data as X - bag of words for each of your
-                            # messages and corresponding label for the message encoded as 0 or 1
-                            # (binary classification task)
-                            fit = function(X)
-                            {
-                              tidy_words &lt;- unnest_tokens(train, &#39;splitted&#39;, &#39;text&#39;, token = &quot;words&quot;) %&gt;% filter(!splitted %in% splitted_stop_words)
-                              for (cur_author in unique(X$author)) {
-                                df &lt;- tidy_words %&gt;%
-                                  filter(author == cur_author) %&gt;%
-                                  count(splitted, name = cur_author, sort = TRUE)
-                                df[nrow(df) + 1,] &lt;- c(&quot;all&quot;, sum(df[, 2]))
+              # here it would be wise to have some vars to store intermediate result
+              # frequency dict etc. Though pay attention to bag of wards!
+              fields = list(data = &quot;data.frame&quot;),
+              methods = list(
+                # prepare your training data as X - bag of words for each of your
+                # messages and corresponding label for the message encoded as 0 or 1
+                # (binary classification task)
+                fit = function(X)
+                {
+                  tidy_words &lt;- unnest_tokens(train, &#39;splitted&#39;, &#39;text&#39;, token = &quot;words&quot;) %&gt;% filter(!splitted %in% splitted_stop_words)
+                  for (cur_author in unique(X$author)) {
+                    df &lt;- tidy_words %&gt;%
+                      filter(author == cur_author) %&gt;%
+                      count(splitted, name = cur_author, sort = TRUE)
+                    df[nrow(df) + 1,] &lt;- c(&quot;all&quot;, sum(df[, 2]))
 
-                                data &lt;&lt;- merge(df, data, all.x = TRUE, all.y = TRUE, by = &quot;splitted&quot;)
-                              }
-                              data_copy &lt;- data[, -1]
-                              rownames(data_copy) &lt;- data[, 1]
-                              data &lt;&lt;- data_copy
-                              data[is.na(data)] &lt;&lt;- 0
-                              data &lt;&lt;- data %&gt;% mutate_at(colnames(data), as.numeric)
-                              data[&quot;all&quot;] &lt;&lt;- rowSums(data, na.rm=TRUE)
-                            },
+                    data &lt;&lt;- merge(df, data, all.x = TRUE, all.y = TRUE, by = &quot;splitted&quot;)
+                  }
+                  data_copy &lt;- data[, -1]
+                  rownames(data_copy) &lt;- data[, 1]
+                  data &lt;&lt;- data_copy
+                  data[is.na(data)] &lt;&lt;- 0
+                  data &lt;&lt;- data %&gt;% mutate_at(colnames(data), as.numeric)
+                  data[&quot;all&quot;] &lt;&lt;- rowSums(data)
+                },
 
-                            # return prediction for a single message
-                            predict = function(message)
-                            {
-                              # TODO
-                            },
+                # return prediction for a single message
+                predict = function(message)
+                {
+                  message_df &lt;- data.frame(text = message)
+                  words &lt;- unnest_tokens(message_df, &quot;word&quot;, &quot;text&quot;) %&gt;%
+                    filter(!word %in% splitted_stop_words)
+                  probs &lt;- data.frame()
+                  for (author in colnames(data[-ncol(data)])) {
+                    probs[&quot;prob&quot;, author] &lt;- data[&quot;all&quot;, author] / data[&quot;all&quot;, &quot;all&quot;]
+                    for (next_word in words[, 1]) {
+                      if (!is.na(data[next_word, author]) &amp; data[next_word, author] != 0) {
+                        cur_word_num &lt;- ((data[next_word, author] / data[&quot;all&quot;, author]) /
+                          (data[next_word, &quot;all&quot;] / data[&quot;all&quot;, &quot;all&quot;]))
+                        probs[&quot;prob&quot;, author] &lt;- probs[&quot;prob&quot;, author] * cur_word_num
+                      }
+                    }
+                  }
+                  print(probs)
+                },
 
-                            # score you test set so to get the understanding how well you model
-                            # works.
-                            # look at f1 score or precision and recall
-                            # visualize them
-                            # try how well your model generalizes to real world data!
-                            score = function(X_test, y_test)
-                            {
-                              # TODO
-                            }
-                          ))
+                # score you test set so to get the understanding how well you model
+                # works.
+                # look at f1 score or precision and recall
+                # visualize them
+                # try how well your model generalizes to real world data!
+                score = function(X_test, y_test)
+                {
+                  # TODO
+                }
+              ))
 
 model &lt;- naiveBayes$new(data = data.frame(matrix(ncol = 1, nrow = 0, dimnames = list(NULL, &quot;splitted&quot;))))
-model$fit(train)</code></pre>
+model$fit(train)
+model$predict(test[1, &quot;text&quot;])</code></pre>
+<pre><code>##      Mary Wollstonecraft Shelley  Edgar Alan Poe HP Lovecraft
+## prob                     1.059757       6.950334  0.002496741</code></pre>
 </div>
 <div id="measure-effectiveness-of-your-classifier" class="section level2">
 <h2>Measure effectiveness of your classifier</h2>
