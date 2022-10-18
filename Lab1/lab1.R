@@ -24,7 +24,7 @@ naiveBayes <-
               methods = list(
                 fit = function(X)
                 {
-                  tidy_words <- unnest_tokens(train, 'splitted', 'text', token = "words") %>% filter(!splitted %in% splitted_stop_words)
+                  tidy_words <- unnest_tokens(X, 'splitted', 'text', token = "words") %>% filter(!splitted %in% splitted_stop_words)
                   for (cur_author in unique(X$author)) {
                     df <- tidy_words %>%
                       filter(author == cur_author) %>%
@@ -93,3 +93,24 @@ model$fit(train)
 test <- read.csv(file = test_path, stringsAsFactors = FALSE)
 model$visualize_metrics(test)
 print(model$score(test))
+
+visualize_train_dependency <- function(step) {
+  train_size <- seq(10, nrow(train), by = step)
+  score <- NULL
+  for (i in train_size) {
+    test_model <- naiveBayes$new(data = data.frame(splitted = "all"))
+    test_model$fit(train[1:i,])
+    score <- c(score, test_model$score(test[1:500,]))
+  }
+
+  table <- data.frame(train_size, score)
+  print(table)
+  table %>%
+    tail(10) %>%
+    ggplot(aes(x = train_size, y = score)) +
+    geom_line(color = "grey") +
+    geom_point(shape = 21, color = "black", fill = "#69b3a2", size = 6) +
+    ggtitle("Train")
+}
+
+visualize_train_dependency(1000)

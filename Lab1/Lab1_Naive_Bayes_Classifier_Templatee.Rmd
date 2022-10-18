@@ -174,9 +174,9 @@ naiveBayes <- setRefClass("naiveBayes",
                     # prepare your training data as X - bag of words for each of your
                     # messages and corresponding label for the message encoded as 0 or 1
                     # (binary classification task)
-                    fit = function(X, y)
+                    fit = function(X)
                     {
-                      tidy_words <- unnest_tokens(train, 'splitted', 'text', token = "words") %>% filter(!splitted %in% splitted_stop_words)
+                      tidy_words <- unnest_tokens(X, 'splitted', 'text', token = "words") %>% filter(!splitted %in% splitted_stop_words)
                       for (cur_author in unique(X$author)) {
                         df <- tidy_words %>%
                           filter(author == cur_author) %>%
