@@ -125,11 +125,13 @@ train <- read.csv(file = train_path, stringsAsFactors = FALSE)
 model$fit(train)
 test <- read.csv(file = test_path, stringsAsFactors = FALSE)
 # Calculate precision, recall and F1-score
-model$visualize_metrics(test)
+model$visualize_metrics(test[1:1000, ])
 # Overall accuracy on test file
 print("Accuracy:")
 print(model$score(test))
+```
 
+```{r}
 # show how accuracy depends on the size of train data
 visualize_train_dependency <- function(step) {
   train_size <- seq(10, nrow(train), by = step)
