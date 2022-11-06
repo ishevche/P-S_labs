@@ -6,6 +6,11 @@ output:
     df_print: paged
 ---
 
+```{r}
+id <- 26
+set.seed(id)
+```
+
 ## General comments and instructions
 
 -   Complete solution will give you $\bf 4$ points (out of 100 total). Submission deadline is **23:59 of 06 November 2022**\
@@ -61,20 +66,15 @@ $$
 #### First, we set the **id** of the team and define the probability $p$ and the generator and parity-check matrices $G$ and $H$
 
 ```{r}
-# your team id number 
-                          ###
-id <- 26                  ### Change to the correct id!
-                          ###
-set.seed(id)
-p <- id/100
+p <- id / 100
 # matrices G and H
 G <- matrix(c(1, 1, 1, 0, 0, 0, 0,
-		1, 0, 0, 1, 1, 0, 0,
-		0, 1, 0, 1, 0, 1, 0,
-		1, 1, 0, 1, 0, 0, 1), nrow = 4, byrow = TRUE)
+              1, 0, 0, 1, 1, 0, 0,
+              0, 1, 0, 1, 0, 1, 0,
+              1, 1, 0, 1, 0, 0, 1), nrow = 4, byrow = TRUE)
 H <- t(matrix(c(1, 0, 1, 0, 1, 0, 1,
-		0, 1, 1, 0, 0, 1, 1,
-		0, 0, 0, 1, 1, 1, 1), nrow = 3, byrow = TRUE))
+                0, 1, 1, 0, 0, 1, 1,
+                0, 0, 0, 1, 1, 1, 1), nrow = 3, byrow = TRUE))
 # cat("The matrix G is: \n") 
 #G  
 #cat("The matrix H is: \n") 
@@ -89,8 +89,8 @@ H <- t(matrix(c(1, 0, 1, 0, 1, 0, 1,
 # generate N messages
 
 message_generator <- function(N) {
-  matrix(sample(c(0,1), 4*N, replace = TRUE), nrow = N)
-}  
+  matrix(sample(c(0, 1), 4 * N, replace = TRUE), nrow = N)
+}
 messages <- message_generator(100)
 codewords <- (messages %*% G) %% 2
 ```
@@ -128,26 +128,26 @@ The next steps include detecting the errors in the received messages, correcting
     -   calculate the number of elements of the sample which are less than critical value ($8 \times 10^8$) and calculate the empirical probability; comment whether it is close to the desired level $0.95$
 
 ```{r}
-N_avogadro = 6.022 * (10 ** 23)
-Time = 30.1*365*24*60*60 # half-life time in seconds
-m = id*(10 ** (-6)) # mass of each sample in grams
-n = 50 # samples quantity
-M = 136.907089 # Atomic mass of Caesium-137.
+N_avogadro <- 6.022 * 10e23
+Time <- 30.1 * 365 * 24 * 60 * 60 # half-life time in seconds
+m <- id * 10e-6 # mass of each sample in grams
+n <- 50 # samples quantity
+M <- 136.907089 # Atomic mass of Caesium-137.
 
-lambda <- log(2)/Time # The activity of the single element 
-N <- (m * N_avogadro)/M # The amount of atoms in 
+lambda <- log(2) / Time # The activity of the single element
+N <- (m * N_avogadro) / M # The amount of atoms in
 mu <- N * lambda
 K <- 1e3
 
-sample_means <- colMeans(matrix(rpois(n*K, lambda = mu), nrow=n))
+sample_means <- colMeans(matrix(rpois(n * K, lambda = mu), nrow = n))
 
 ```
 
 #### Next, calculate the parameters of the standard normal approximation
 
 ```{r}
-mu <- mu      
-sigma <- sqrt(mu/n)  
+mu <- mu
+sigma <- sqrt(mu / n)
 mu
 sigma
 ```
@@ -155,11 +155,11 @@ sigma
 #### We can now plot ecdf and cdf
 
 ```{r}
-xlims <- c(mu-3*sigma,mu+3*sigma)
+xlims <- c(mu - 3 * sigma, mu + 3 * sigma)
 Fs <- ecdf(sample_means)
-plot(Fs, 
-     xlim = xlims, 
-     ylim = c(0,1),
+plot(Fs,
+     xlim = xlims,
+     ylim = c(0, 1),
      col = "blue",
      lwd = 2,
      main = "Comparison of ecdf and cdf")
@@ -195,7 +195,7 @@ curve(pnorm(x, mean = mu, sd = sigma), col = "red", lwd = 2, add = TRUE)
 nu1 <- 1  # change this!
 K <- 1e3
 n <- 5
-sample_means <- colMeans(matrix(rexp(n*K, rate = nu1), nrow=n))
+sample_means <- colMeans(matrix(rexp(n * K, rate = nu1), nrow = n))
 ```
 
 #### Next, calculate the parameters of the standard normal approximation
@@ -208,14 +208,45 @@ sigma <- 1    # change this!
 #### We can now plot ecdf and cdf
 
 ```{r}
-xlims <- c(mu-3*sigma,mu+3*sigma)
+xlims <- c(mu - 3 * sigma, mu + 3 * sigma)
 Fs <- ecdf(sample_means)
-plot(Fs, 
-     xlim = xlims, 
+plot(Fs,
+     xlim = xlims,
      col = "blue",
      lwd = 2,
      main = "Comparison of ecdf and cdf")
 curve(pnorm(x, mean = mu, sd = sigma), col = "red", lwd = 2, add = TRUE)
+```
+
+
+```{r}
+test <- function(n) {
+  lambda <- id + 10
+  K <- 1e3
+  sample_means <- colMeans(matrix(rexp(n * K, rate = lambda), nrow = n))
+
+  mu <- 1 / lambda
+  sigma <- 1 / (lambda * sqrt(n))
+
+  xlims <- c(mu - 3 * sigma, mu + 3 * sigma)
+  Fs <- ecdf(sample_means)
+  plot(Fs,
+       xlim = xlims,
+       col = "blue",
+       lwd = 2,
+       main = "Comparison of ecdf and cdf")
+  curve(pnorm(x, mean = mu, sd = sigma), col = "red", lwd = 2, add = TRUE)
+
+
+  x <- seq(min(sample_means), max(sample_means), by = .0001)
+  return(max(abs(ecdf(sample_means)(x) - pnorm(x, mean = mu, sd = sigma))))
+}
+```
+
+```{r}
+test(5)
+test(10)
+test(50)
 ```
 
 **Next, proceed with all the remaining steps**
