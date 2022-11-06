@@ -63,54 +63,105 @@ $$
 #### Assume that each bit in the transmission $\mathbf{c} \mapsto \mathbf{r}$ gets corrupted independently of the others with probability $p = \mathtt{id}/100$, where $\mathtt{id}$ is your team number. Your task is the following one.
 
 1.  Simulate the encoding-transmission-decoding process $N$ times and find the estimate $\hat p$ of the probability $p^*$ of correct transmission of a single message $\mathbf{m}$. Comment why, for large $N$, $\hat p$ is expected to be close to $p^*$.\
+    #### First, we set the **id** of the team and define the probability $p$ and the generator and parity-check matrices $G$ and $H$
+
+    ```{r}
+    # your team id number 
+    id <-    26
+
+    set.seed(id)
+    p <- id/100
+    # matrices G and H
+    G <- matrix(c(1, 1, 1, 0, 0, 0, 0,
+    		1, 0, 0, 1, 1, 0, 0,
+    		0, 1, 0, 1, 0, 1, 0,
+    		1, 1, 0, 1, 0, 0, 1), nrow = 4, byrow = TRUE)
+    H <- t(matrix(c(1, 0, 1, 0, 1, 0, 1,
+    		0, 1, 1, 0, 0, 1, 1,
+    		0, 0, 0, 1, 1, 1, 1), nrow = 3, byrow = TRUE))
+
+    #cat("The product GH must be zero: \n")
+    #(G%*%H) %%2
+    ```
+
+    #### Now, we generate N massages and encode them to 7-bit codewords
+
+    ```{r}
+    N <- 1000
+    message_generator <- function(N) {
+      matrix(sample(c(0,1), 4*N, replace = TRUE), nrow = N)
+    }  
+    messages <- message_generator(N)
+    codewords <- (messages %*% G) %% 2
+    ```
+
+    #### Here, we generate random errors with probability $p$
+
+    ```{r}
+    error_generator <- function(encoded_matrix) {
+        output = matrix(, nrow = N, ncol = 7)
+        for (i in 1:N) {
+          for (j in 1:7) {
+            error_probability = runif(1, min=0, max=1)
+            output[i, j] = if (error_probability <= p) xor(encoded_matrix[i, j], 1)  else encoded_matrix[i, j]
+          }
+        }
+        return (output)
+    }
+    received_with_errors <- error_generator(codewords)
+    ```
+
+    #### Using syndrome vector z we create a matrix with the indexes of bits that were wrongly transmitted
+
+    ```{r}
+    syndrome_vector <- (received_with_errors%*%H) %%2
+
+    error_identifier <- function(z_matrix) {
+      wrong_bits = matrix(, nrow = N, ncol = 1)
+      for (i in 1:N) {
+        wrong_bits[i,1] = z_matrix[i,1] + 2*z_matrix[i,2] + 4*z_matrix[i,3]
+      }
+      return (wrong_bits)
+    }
+    wrong_bits <- error_identifier(syndrome_vector)
+    ```
+
+    #### Next, we correct wrong bits and return decoded message
+
+    ```{r}
+    error_corrector <- function(wrong_bits) {
+      corrected_message <- matrix(, nrow = N, ncol = 4)
+
+      for (i in 1:N) {
+        received_with_errors[i, wrong_bits[i]] = if (wrong_bits[i] != 0) xor(received_with_errors[i, wrong_bits[i]], 1) else received_with_errors[i, wrong_bits[i]]
+        corrected_message[i, 1] = received_with_errors[i, 3]
+        corrected_message[i, 2] = received_with_errors[i, 5]
+        corrected_message[i, 3] = received_with_errors[i, 6]
+        corrected_message[i, 4] = received_with_errors[i, 7]
+      }
+      return (corrected_message)
+    }
+
+    corrected_decoded_message <- error_corrector(wrong_bits)
+    ```
+
+    #### Finally, we find the estimate $\hat p$ of the probability $p^*$ of correct transmission of a single message $\mathbf{m}$
+
+    ```{r}
+    proper_transmissions <- 0
+    for (i in 1:N) {
+        a = (messages[i, 1:4] == corrected_message[i, 1:4])
+        false_count = sum(a == 0)
+        if (false_count == 0) {
+          proper_transmissions = proper_transmissions + 1
+        }
+    }
+    proper_transmissions/N
+    ```
+
 2.  By estimating the standard deviation of the corresponding indicator of success by the standard error of your sample and using the CLT, predict the \emph{confidence} interval $(p^*-\varepsilon, p^* + \varepsilon)$, in which the estimate $\hat p$ falls with probability at least $0.95$.\
 3.  What choice of $N$ guarantees that $\varepsilon \le 0.03$?\
 4.  Draw the histogram of the number $k = 0,1,2,3,4$ of errors while transmitting a $4$-digit binary message. Do you think it is one of the known distributions?
-
-#### You can (but do not have to) use the chunks we prepared for you
-
-#### First, we set the **id** of the team and define the probability $p$ and the generator and parity-check matrices $G$ and $H$
-
-```{r}
-p <- id / 100
-# matrices G and H
-G <- matrix(c(1, 1, 1, 0, 0, 0, 0,
-              1, 0, 0, 1, 1, 0, 0,
-              0, 1, 0, 1, 0, 1, 0,
-              1, 1, 0, 1, 0, 0, 1), nrow = 4, byrow = TRUE)
-H <- t(matrix(c(1, 0, 1, 0, 1, 0, 1,
-                0, 1, 1, 0, 0, 1, 1,
-                0, 0, 0, 1, 1, 1, 1), nrow = 3, byrow = TRUE))
-# cat("The matrix G is: \n") 
-#G  
-#cat("The matrix H is: \n") 
-#H
-#cat("The product GH must be zero: \n")
-#(G%*%H) %%2
-```
-
-#### Next, generate the messages
-
-```{r}
-# generate N messages
-
-message_generator <- function(N) {
-  matrix(sample(c(0, 1), 4 * N, replace = TRUE), nrow = N)
-}
-messages <- message_generator(100)
-codewords <- (messages %*% G) %% 2
-```
-
-#### Generate random errors; do not forget that they occur with probability $p$! Next, generate the received messages
-
-```{r}
-#  errors <- ...
-#  received <-   
-```
-
-The next steps include detecting the errors in the received messages, correcting them, and then decoding the obtained messages. After this, you can continue with calculating all the quantities of interest
-
-**Do not forget to include several sentences summarizing your work and the conclusions you have made!**
 
 ### Task 2.
 
