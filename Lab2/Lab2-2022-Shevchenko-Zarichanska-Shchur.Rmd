@@ -6,18 +6,15 @@ output:
     df_print: paged
 ---
 
-<<<<<<< HEAD
 ## Work-breakdown structure
 
 -   Task1 : Zarichanska Yelyzaveta
 -   Task2 : Shchur Oleksandr
 -   Task3 : Shevchenko Ivan
-=======
 ```{r}
 id <- 26
 set.seed(id)
 ```
->>>>>>> 78187654eece9a4c5af6c078bbb6fa627be30b5b
 
 ## General comments and instructions
 
@@ -136,25 +133,14 @@ The next steps include detecting the errors in the received messages, correcting
     -   calculate the number of elements of the sample which are less than critical value ($8 \times 10^8$) and calculate the empirical probability; comment whether it is close to the desired level $0.95$
 
 ```{r}
-<<<<<<< HEAD
-N_avogadro = 6.022 * (10 ** 23)
-Time = 30.1*365*24*60*60 # half-life time in seconds
-m = id*(10 ** (-6)) # mass of each sample in grams
-n = 50 # samples quantity
-M = 136.907089 # Atomic mass of Caesium-137.
-
-lambda <- log(2)/Time # The activity of the single element 
-N <- (m * N_avogadro)/M # The amount of atoms in the sample
-=======
-N_avogadro <- 6.022 * 10e23
+N_avogadro <- 6.022 * 1e23
 Time <- 30.1 * 365 * 24 * 60 * 60 # half-life time in seconds
-m <- id * 10e-6 # mass of each sample in grams
+m <- id * 1e-6 # mass of each sample in grams
 n <- 50 # samples quantity
 M <- 136.907089 # Atomic mass of Caesium-137.
 
 lambda <- log(2) / Time # The activity of the single element
-N <- (m * N_avogadro) / M # The amount of atoms in
->>>>>>> 78187654eece9a4c5af6c078bbb6fa627be30b5b
+N <- (m * N_avogadro) / M # The amount of atoms in the sample
 mu <- N * lambda
 K <- 1e3
 
