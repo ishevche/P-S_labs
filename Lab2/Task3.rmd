@@ -1,0 +1,114 @@
+```{r}
+id <- 26
+set.seed(id)
+```
+
+The next block of code implements function containing everything needed in subtask #1:
+
+- at first of all I initialize some important variables such as $\nu$ - the expected number of clicks in a minute and $K$ - amount of simulations
+- then I generate a matrix $n \times K$ and calculate a mean for each of $K$ columns, and as a result I have a vector with length K of means
+- using CLT one can show the distribution of means is approximately normal distribution (will be shown later), so I set up mean ($\mu$) and standard deviation ($\sigma$) for that normal distribution
+- if user asked to draw a graph (settled second argument to TRUE) I plot empirical cdf of our means and corresponding normal distribution cdf using parameters settled before
+- finally function returns the maximum difference between empirical cdf and normal distribution's cdf
+
+Let's find $\mu$ and $\sigma$ for normal distribution:
+$$ F(M_n \leqslant x) = F(\frac{X_1+X_2+..+X_n}{n}\leqslant x) =$$
+$$= F(\frac{X_1+X_2+..+X_n - n\mu}{n}\leqslant x - \mu) =$$
+$$= F(\frac{X_1+X_2+..+X_n - n\mu}{\sqrt n \cdotp \sigma}\leqslant \frac{(x - \mu)\cdotp \sqrt n}{\sigma})$$
+From this point, using CLT I can say:
+$$F(\frac{X_1+X_2+..+X_n - n\mu}{\sqrt n \cdotp \sigma}\leqslant \frac{(x - \mu)\cdotp \sqrt n}{\sigma}) \approx \Phi (\frac{(x - \mu)\cdotp \sqrt n}{\sigma})$$
+where $\Phi$ is cdf for standard normal distribution. So our random variable $M_n \sim \mathcal{N}(\mu; \frac{\sigma}{\sqrt n})$
+As soon as for exponential distribution $\mu = \sigma = \frac{1}{\lambda}$ and $= \frac{1}{\nu_1}$ in our case, I can set parameters for normal distribution
+
+```{r}
+simulate_sample <- function(n, graph = FALSE) {
+  nu1 <- id + 10
+  K <- 1e3
+  sample_means <- colMeans(matrix(rexp(n * K, rate = nu1), nrow = n))
+
+  mu <- 1 / nu1
+  sigma <- 1 / (nu1 * sqrt(n))
+
+  if (graph) {
+    xlims <- c(mu - 3 * sigma, mu + 3 * sigma)
+    Fs <- ecdf(sample_means)
+    plot(Fs,
+         xlim = xlims,
+         col = "blue",
+         xlab = "value",
+         ylab = "P(mean < value)",
+         lwd = 2,
+         main = paste("Compparation of empitrical cdf of ", K, " X ", n, "sample with normal distrbution cdf"))
+    curve(pnorm(x, mean = mu, sd = sigma), col = "red", lwd = 2, add = TRUE)
+  }
+
+  x <- seq(min(sample_means), max(sample_means), by = .0001)
+  return(max(abs(ecdf(sample_means)(x) - pnorm(x, mean = mu, sd = sigma))))
+}
+```
+```{r}
+test <- function() {
+  cat(paste("The max difference for n = 5: ", simulate_sample(5), "\n"))
+  cat(paste("The max difference for n = 10: ", simulate_sample(10), "\n"))
+  cat(paste("The max difference for n = 50: ", simulate_sample(50), "\n"))
+  cat(paste("The max difference for n = 1000: ", simulate_sample(1000, TRUE), "\n"))
+}
+test()
+```
+
+```{r}
+K <- 1e3
+nu1 <- (id + 10)
+```
+```{r}
+simulate_geiger <- function(n) {
+  K <- 1e3
+  nu1 <- (id + 10)
+  sums <- colSums(matrix(rexp(100 * K, rate = nu1 * n), nrow = 100))
+  return(length(sums[sums >= 1]) / K)
+}
+```
+After defining all necessary functions and variables we can calculate N in 4 different ways:
+
+- using Markov's inequality:
+$$
+P( S\geqslant 1) \leqslant E( S) , E( S) =100\cdotp E( X_{i}) =\frac{100}{\nu _{1} N}$$
+$$0.95\leqslant P( S\geqslant 1)  \leqslant \frac{100}{\nu _{1} N}$$
+$$\frac{100}{\nu _{1} N} \geqslant 0.95\Longrightarrow N\leqslant \frac{100}{\nu _{1} \cdotp 0.95}$$
+- using Chebyshev's inequality:
+$$
+P( S-E( S) \geqslant 1-E( S)) \leqslant \frac{\sigma _{S}^{2}}{\sigma _{S}^{2} +( 1-E( S))^{2}} =\frac{100\sigma _{X}^{2}}{100\sigma _{X}^{2} +( 1-100 E( X))^{2}} =$$
+$$=\frac{\frac{100}{N^{2} \nu _{1}^{2}}}{\frac{100}{N^{2} \nu _{1}^{2}} +\left( 1-\frac{100}{N\nu _{1}}\right)^{2}} =\frac{100}{100 + ( N\nu _{1} -100)^{2}} =\frac{100}{N^{2} \nu _{1}^{2} -200\cdotp N\nu _{1} +9000}$$
+$$0.95\leqslant \frac{100}{N^{2} \nu _{1}^{2} -200\cdotp N\nu _{1} +9000}$$
+$$0.95\left( 100 + ( N\nu _{1} -100)^{2}\right) =95+0.95( N\nu _{1} -100)^{2} \leqslant 100$$
+$$0.95( N\nu _{1} -100)^{2} \leqslant 5$$
+$$( N\nu _{1} -100)^{2} \leqslant \frac{5}{0.95}$$
+$$N\leqslant \frac{\sqrt{\frac{20}{19}} +100}{\nu _{1}}$$
+
+- using CLT approximation:
+$$P\left(\frac{S-\mu n}{\sigma \sqrt{n}} \leqslant t\right)\rightarrow \Phi ( t)$$
+$$P\left(\frac{S-\mu n}{\sigma \sqrt{n}} \geqslant t\right)\rightarrow 1-\Phi ( t)$$
+$$P\left(\frac{S-\mu n}{\sigma \sqrt{n}} \geqslant \frac{1-\frac{100}{N\nu _{1}}}{\frac{10}{N\nu _{1}}}\right)\rightarrow 1-\Phi \left(\frac{1-\frac{100}{N\nu _{1}}}{\frac{10}{N\nu _{1}}}\right) =$$
+$$=1-\Phi \left(\frac{N\nu _{1} -100}{10}\right) \geqslant 0.95\Longrightarrow \Phi \left(\frac{N\nu _{1} -100}{10}\right) \leqslant 0.05$$
+
+- and also we can find n just simulating this process and saving largest $N$ where asked probability became less the 0.95
+```{r}
+N_markov <- 100 / (nu1 * 0.95)
+N_chebashev <- (sqrt(5 / 0.95) + 100) / nu1
+N_clt <- (uniroot(function(x) pnorm(x) - 0.05, c(-2, -1))$root * 10 + 100) / nu1
+N_actual <- uniroot(function(x) simulate_geiger(x) - 0.95,
+                    c(0.5, 5))$root
+```
+```{r}
+test <- function() {
+  cat(paste("The probability location identified as safe for n calculated by Markov\'s inequality (",
+            N_markov, "): ", simulate_geiger(N_markov), "\n"))
+  cat(paste("The probability location identified as safe for n calculated by Chebyshev\'s inequality (",
+            N_chebashev, "): ", simulate_geiger(N_chebashev), "\n"))
+  cat(paste("The probability location identified as safe for n calculated by CLT (",
+            N_clt, "): ", simulate_geiger(N_clt), "\n"))
+  cat(paste("The probability location identified as safe for n calculated by simulations (",
+            N_actual, "): ", simulate_geiger(N_actual), "\n"))
+}
+test()
+```
