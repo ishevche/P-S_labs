@@ -128,19 +128,28 @@ The next steps include detecting the errors in the received messages, correcting
     -   calculate the number of elements of the sample which are less than critical value ($8 \times 10^8$) and calculate the empirical probability; comment whether it is close to the desired level $0.95$
 
 ```{r}
-lambda <- 1  # change this!
-N <- 100     # change this!
+N_avogadro = 6.022 * (10 ** 23)
+Time = 30.1*365*24*60*60 # half-life time in seconds
+m = id*(10 ** (-6)) # mass of each sample in grams
+n = 50 # samples quantity
+M = 136.907089 # Atomic mass of Caesium-137.
+
+lambda <- log(2)/Time # The activity of the single element 
+N <- (m * N_avogadro)/M # The amount of atoms in 
 mu <- N * lambda
 K <- 1e3
-n <- 5
+
 sample_means <- colMeans(matrix(rpois(n*K, lambda = mu), nrow=n))
+
 ```
 
 #### Next, calculate the parameters of the standard normal approximation
 
 ```{r}
-mu <- 0       # change this!
-sigma <- 1    # change this!
+mu <- mu      
+sigma <- sqrt(mu/n)  
+mu
+sigma
 ```
 
 #### We can now plot ecdf and cdf
