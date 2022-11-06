@@ -6,6 +6,12 @@ output:
     df_print: paged
 ---
 
+## Work-breakdown structure
+
+-   Task1 : Zarichanska Yelyzaveta
+-   Task2 : Shchur Oleksandr
+-   Task3 : Shevchenko Ivan
+
 ## General comments and instructions
 
 -   Complete solution will give you $\bf 4$ points (out of 100 total). Submission deadline is **23:59 of 06 November 2022**\
@@ -135,7 +141,7 @@ n = 50 # samples quantity
 M = 136.907089 # Atomic mass of Caesium-137.
 
 lambda <- log(2)/Time # The activity of the single element 
-N <- (m * N_avogadro)/M # The amount of atoms in 
+N <- (m * N_avogadro)/M # The amount of atoms in the sample
 mu <- N * lambda
 K <- 1e3
 
