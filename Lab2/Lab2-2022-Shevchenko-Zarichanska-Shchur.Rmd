@@ -164,6 +164,18 @@ $$
 3.  What choice of $N$ guarantees that $\varepsilon \le 0.03$?\
 
 4.  Draw the histogram of the number $k = 0,1,2,3,4$ of errors while transmitting a $4$-digit binary message. Do you think it is one of the known distributions?
+    ```{r}
+    num_of_errors_list <- matrix(, nrow = 1, ncol = N)
+    for (row in 1:N) {
+      num_of_errors_list[1, row] = sum(corrected_decoded_message[row,] != messages[row,])
+    }
+    hist(num_of_errors_list,
+         xlim = c(0,4),
+         xlab = "no of wrong bits",
+         ylab = "no of  messages",
+         main = "The num of wrong bits in a decoded message",
+         col = "orange");
+    ```
 
 ### Task 2.
 
