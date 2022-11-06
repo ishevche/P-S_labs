@@ -63,7 +63,7 @@ $$
 #### Assume that each bit in the transmission $\mathbf{c} \mapsto \mathbf{r}$ gets corrupted independently of the others with probability $p = \mathtt{id}/100$, where $\mathtt{id}$ is your team number. Your task is the following one.
 
 1.  Simulate the encoding-transmission-decoding process $N$ times and find the estimate $\hat p$ of the probability $p^*$ of correct transmission of a single message $\mathbf{m}$. Comment why, for large $N$, $\hat p$ is expected to be close to $p^*$.\
-    #### First, we set the **id** of the team and define the probability $p$ and the generator and parity-check matrices $G$ and $H$
+    \#### First, we set the **id** of the team and define the probability $p$ and the generator and parity-check matrices $G$ and $H$
 
     ```{r}
     # your team id number 
@@ -160,7 +160,9 @@ $$
     ```
 
 2.  By estimating the standard deviation of the corresponding indicator of success by the standard error of your sample and using the CLT, predict the \emph{confidence} interval $(p^*-\varepsilon, p^* + \varepsilon)$, in which the estimate $\hat p$ falls with probability at least $0.95$.\
+
 3.  What choice of $N$ guarantees that $\varepsilon \le 0.03$?\
+
 4.  Draw the histogram of the number $k = 0,1,2,3,4$ of errors while transmitting a $4$-digit binary message. Do you think it is one of the known distributions?
 
 ### Task 2.
@@ -283,9 +285,32 @@ print(n_bound_Markov)
 
 Using Chebyshev:
 
-For teamid = 26: $\mu = 83510392 \\ E[M_n] = \mu \\ Var[M_n] = \frac{\sigma^2}{n} \\ P(M_n \ge 8*10^8) \\ P(M_n - \mu \ge 8*10^8 - \mu) \le P(\mid M_n - \mu \mid \ge 8*10^8 - \mu)$ Let's denote the $8*10^8 - \mu$ as $c \\ P(\mid M_n - \mu \mid \ge c) \le Var[M_n]/c^2 = \sigma^2/nc^2 = \lambda/nc^2$
+For teamid = 26: $\mu = 83510392 \\ E[S_n] = n \mu \\ Var[S_n] = n \sigma ^ 2 \\ P(S_n \ge 8*10^8) \le 0.05 \\ P(S_n - n\mu \ge 8*10^8 - n\mu) \le P(\mid S_n - n\mu \mid \ge 8*10^8 - n\mu) \le 0.05 \\ P(\mid S_n - n\mu \mid \ge 8*10^8 - n\mu) = P(\mid M_n - \mu \mid \ge \frac{8*10^8}{n} - \mu ) \le 0.05$ Let's denote the $\frac{8*10^8}{n} - \mu = \frac{8*10^8 - n\mu}{n}$ as $c$ $\\ P(\mid M_n - \mu \mid \ge c) \le Var[S_n]/c^2 = n\sigma^2/c^2 = n\lambda/c^2 \le 0.05 \\ n\lambda/c^2 \le 0.05 \\ n^3 \lambda \le 0.05(8*10^8 - n\mu)^2 \\$As X has a Poisson distribution, \$\mu = \lambda \\ \$. $\\n^3 \lambda \le 0.05(8*10^8 - n\lambda)^2 \\ \lambda = 83510392$ Solving equation above leads to: $n \le 9.56517$
 
-$P(\mid M_n - E[M_n] \mid \ge 8*10^8) \le \frac{Var[M_n]}{{(8*10^8)}^2} \\ P(\mid M_n - \mu \mid \ge 8*10^8) \le \frac{\sigma^2}{{(8*10^8)}^2*n}$
+Using CLT:
+$P(S_n \le 8*10^8 * (\sigma \sqrt{n}) + n*\mu) -> Ф(8*10^8 * (\sigma \sqrt{n}) + n*\mu)$
+
+```{r}
+bound_samples_generation <- function(n, k, mu){
+  set.seed(id)
+  n <- n # samples quantity
+  K <- k # Number of trials
+  sample_sums <- colSums(matrix(rpois(n * K, lambda = mu), nrow = n)) # Generating samples and calculating their means.
+  return(sample_sums)
+}
+
+samples = bound_samples_generation(9, 1000, mu) # We can't set n = 9.56517 (result of solving the Chebishev inequality), so it is 9.
+less_than_critical = sum(samples < 8*10^8)
+empirical_probability = less_than_critical / length(samples)
+print(paste("Empirical probability, that for n=9 sum is less than 8*10^8: ", empirical_probability))
+
+samples = bound_samples_generation(10, 1000, mu) #Let's try with 10
+less_than_critical = sum(samples < 8*10^8)
+empirical_probability = less_than_critical / length(samples)
+print(paste("Empirical probability, that for n=10 sum is less than 8*10^8: ", empirical_probability))
+
+print("That proves that our estimation through the inequalities is quite precise!")
+```
 
 **Next, proceed with all the remaining steps**
 
