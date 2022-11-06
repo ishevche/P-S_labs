@@ -55,7 +55,7 @@ test <- function() {
 }
 test()
 ```
-
+From the results we can see that for bigger n the resulting distribution is more accurate, and the difference is smaller, and this is what WLLN stands for (obviously there could be some fluctuations, because of randomness, but overall picture is such).
 ```{r}
 K <- 1e3
 nu1 <- (id + 10)
@@ -112,3 +112,5 @@ test <- function() {
 }
 test()
 ```
+
+While doing this lab we have used such theorems and inequalities in real life and learned how to use then on practice. Particularly we have used Markov's, Chebyshev and Chernoff inequalities and also CLT alongside comparing with actual simulations of random events and also get better intuition about using such powerful instruments. Also, we have learned something new about real life random variables such as errors during data transmission and nuclear decay.
