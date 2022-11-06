@@ -159,10 +159,28 @@ $$
     proper_transmissions/N
     ```
 
-2.  By estimating the standard deviation of the corresponding indicator of success by the standard error of your sample and using the CLT, predict the \emph{confidence} interval $(p^*-\varepsilon, p^* + \varepsilon)$, in which the estimate $\hat p$ falls with probability at least $0.95$.\
+2.  By estimating the standard deviation of the corresponding indicator of success by the standard error of your sample and using the CLT, predict the \emph{confidence} interval $(p^*-\varepsilon, p^* + \varepsilon)$, in which the estimate $\hat p$ falls with probability at least $0.95$.\ What choice of $N$ guarantees that $\varepsilon \le 0.03$?\
+We need to prove that: P{|p^ - p*|<= 0.03} >= 0.95
 
-3.  What choice of $N$ guarantees that $\varepsilon \le 0.03$?\
+dev =  $\sqrt[]{p(1-p}$ 
 
+Zn = ($\sqrt[]{n}$(p^ - p))/dev
+
+Then we will find P{|p^ - p*|>= e}
+
+A = P{|p^ - p|>= e} = P{|Zn|>=$\sqrt[]{n}$*e/$\sqrt[]{p(1-p}$} = 2P{Zn<=-$\sqrt[]{n}$*e/$\sqrt[]{p(1-p}$}
+
+Using CLT, A ~ 2F(-$\sqrt[]{n}$*e/$\sqrt[]{p(1-p}$)
+
+To make that be at most 0.05 with e <= 0.03 we need
+
+$\sqrt[]{n}$*e/$\sqrt[]{p(1-p}$ >= 1.96
+
+than we have
+
+$\sqrt[]{n}$ >= 1.96/(2 * 0.03)
+
+n >= 1067,1
 4.  Draw the histogram of the number $k = 0,1,2,3,4$ of errors while transmitting a $4$-digit binary message. Do you think it is one of the known distributions?
     ```{r}
     num_of_errors_list <- matrix(, nrow = 1, ncol = N)
