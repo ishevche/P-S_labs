@@ -300,7 +300,7 @@ Using Chebyshev:
 For teamid = 26: $\mu = 83510392 \\ E[S_n] = n \mu \\ Var[S_n] = n \sigma ^ 2 \\ P(S_n \ge 8*10^8) \le 0.05 \\ P(S_n - n\mu \ge 8*10^8 - n\mu) \le P(\mid S_n - n\mu \mid \ge 8*10^8 - n\mu) \le 0.05 \\ P(\mid S_n - n\mu \mid \ge 8*10^8 - n\mu) = P(\mid M_n - \mu \mid \ge \frac{8*10^8}{n} - \mu ) \le 0.05$ Let's denote the $\frac{8*10^8}{n} - \mu = \frac{8*10^8 - n\mu}{n}$ as $c$ $\\ P(\mid M_n - \mu \mid \ge c) \le Var[S_n]/c^2 = n\sigma^2/c^2 = n\lambda/c^2 \le 0.05 \\ n\lambda/c^2 \le 0.05 \\ n^3 \lambda \le 0.05(8*10^8 - n\mu)^2 \\$As X has a Poisson distribution, \$\mu = \lambda \\ \$. $\\n^3 \lambda \le 0.05(8*10^8 - n\lambda)^2 \\ \lambda = 83510392$ Solving equation above leads to: $n \le 9.56517$
 
 Using CLT:
-$P(S_n \le 8*10^8 * (\sigma \sqrt{n}) + n*\mu) -> Ф(8*10^8 * (\sigma \sqrt{n}) + n*\mu)$
+$P(S_n \le 8*10^8 * (\sigma \sqrt{n}) + n*\mu) -> Ф(8*10^8)$
 
 ```{r}
 bound_samples_generation <- function(n, k, mu){
@@ -316,7 +316,7 @@ less_than_critical = sum(samples < 8*10^8)
 empirical_probability = less_than_critical / length(samples)
 print(paste("Empirical probability, that for n=9 sum is less than 8*10^8: ", empirical_probability))
 
-samples = bound_samples_generation(10, 1000, mu) #Let's try with 10
+samples = bound_samples_generation(10, 1000, mu) # Let's try with 10
 less_than_critical = sum(samples < 8*10^8)
 empirical_probability = less_than_critical / length(samples)
 print(paste("Empirical probability, that for n=10 sum is less than 8*10^8: ", empirical_probability))
